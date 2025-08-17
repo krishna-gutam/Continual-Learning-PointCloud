@@ -1,0 +1,48 @@
+# config/experiment_config.yaml
+project_name: cl_pointcloud
+seed: 42
+
+data:
+  root: data/modelnet
+  dataset: ModelNet10
+  num_points: 1024           # main training points per sample
+  memory_num_points: 100     # for optional memory fine-tuning
+  tasks:                     # 5 tasks × 2 classes each
+    - [chair, sofa]
+    - [bed, bathtub]
+    - [desk, dresser]
+    - [monitor, table]
+    - [night_stand, toilet]
+  ood_dataset: ModelNet40
+  ood_num_classes: 10        # OOD classes for uncertainty evaluation
+  ood_seed: 123
+
+training:
+  device: cuda
+  epochs_per_task: 20        # as in thesis
+  batch_size: 32
+  lr: 0.001                  # as in thesis
+  weight_decay: 0.0
+  optimizer: adam
+
+model:
+  backbone: point_transformer  # fallback to PointNet if not implemented
+  num_classes: 10
+  lora:
+    rank: 8                   # LoRA rank
+    alpha: 16
+    dropout: 0.0
+
+merging:
+  method: ties                # default merging strategy
+  ties:
+    trim_percentile: 0.2      # TIES trim threshold
+
+uncertainty:
+  laplace:
+    approx: diagonal
+    samples: 10               # Bayesian LoRA ensemble size
+
+evaluation:
+  ece_bins: 15                # Expected Calibration Error bins
+  save_dir: results
